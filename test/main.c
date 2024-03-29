@@ -1,7 +1,4 @@
-#include "../base16.c"
-#include "../base32.c"
-#include "../base32hex.c"
-#include "../base64.c"
+#include "../base.c"
 #include <stdio.h>
 #include "stub.c"
 #include "fixture16.c"
@@ -11,13 +8,13 @@
 
 #define BUFLEN 680000
 
-i8  buf[BUFLEN];
-u32 len;
+mu8  buf[BUFLEN];
+mu32 len;
 
-void assert(const i8 val[], const i8 exp[], const u32 len) {
-  u32 j;
-  i8 sign[3] = "==";
-  i8 res     = '+';
+void assert(i8 val[], i8 exp[], u32 len) {
+  mu32 j;
+  mi8 sign[3] = "==";
+  mi8 res     = '+';
 
   buf[len] = 0;
   for (j = 0; j < len && exp[j] == buf[j]; j++);
@@ -30,7 +27,7 @@ void assert(const i8 val[], const i8 exp[], const u32 len) {
 }
 
 int main(void) {
-  u32 j;
+  mu32 j;
 
   puts("BASE16");
   assert("",       "",             b16e("", 0, buf, BUFLEN));
