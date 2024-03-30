@@ -26,8 +26,23 @@ void assert(i8 val[], i8 exp[], u32 len) {
   printf("  %c \"%s\": \"%s\" %s \"%s\"\n", res, val, exp, sign, buf);
 }
 
+void test(u8 exp[], u32 len) {
+  mu32 j;
+  mi8 sign[3] = "==";
+  mi8 res     = '+';
+
+  for (j = 0; j < len && exp[j] == buf[j]; j++);
+  if (j != len || exp[j-1] != buf[j-1]) {
+    sign[0] = '!';
+    res     = '-';
+  }
+
+  printf("  %c \"%s\"\n", res, exp);
+}
+
 int main(void) {
   mu32 j;
+  mu8  data[2];
 
   puts("BASE16");
   assert("",       "",             b16e("", 0, buf, BUFLEN));
@@ -37,7 +52,23 @@ int main(void) {
   assert("foob",   "666F6F62",     b16e("foob", 4, buf, BUFLEN));
   assert("fooba",  "666F6F6261",   b16e("fooba", 5, buf, BUFLEN));
   assert("foobar", "666F6F626172", b16e("foobar", 6, buf, BUFLEN));
-  assert("foobar", "666F6F626172", b16e("foobar", 6, buf, BUFLEN));
+
+
+  data[0] = 0xff;
+  data[1] = 0xff;
+
+  len = b16e(data, 1, buf, BUFLEN);
+  buf[len] = 0;
+  printf("base16(0xff) = %s\n", buf);
+
+  len = b16e(data, 2, buf, BUFLEN);
+  buf[len] = 0;
+  printf("base16(0xffff) = %s\n", buf);
+
+  len = b64e(data, 2, buf, BUFLEN);
+  buf[len] = 0;
+  printf("base64(0xffff) = %s\n", buf);
+
   len      = b16e(stub, stublen, buf, BUFLEN);
   buf[len] = 0;
   for (j = 0; j < len && j < fixt16len && fixt16[j] == buf[j]; j++);
@@ -96,6 +127,22 @@ int main(void) {
     printf("  - stub.c: fixt64 != buf\n");
   } else {
     printf("  + stub.c: fixt64 == buf\n");
+  }
+
+  puts("\nDECODE BASE16");
+  test("f",      b16d("66",           2, buf, BUFLEN));
+  test("fo",     b16d("666F",         4, buf, BUFLEN));
+  test("foo",    b16d("666F6F",       6, buf, BUFLEN));
+  test("foob",   b16d("666F6F62",     8, buf, BUFLEN));
+  test("fooba",  b16d("666F6F6261",   10, buf, BUFLEN));
+  test("foobar", b16d("666F6F626172", 12, buf, BUFLEN));
+  len      = b16d(fixt16, fixt16len, buf, BUFLEN);
+  buf[len] = 0;
+  for (j = 0; j < len && j < stublen && stub[j] == buf[j]; j++);
+  if (j != len || stub[j-1] != buf[j-1]) {
+    printf("  - fixt16.c: stub != buf\n");
+  } else {
+    printf("  + fixt16.c: stub == buf\n");
   }
 
   return 0;

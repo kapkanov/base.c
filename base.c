@@ -25,6 +25,7 @@ u32 b16e(u8 data[], u32 datalen, mu8 buf[], u32 buflen);
 u32 b32e(u8 data[], u32 datalen, mu8 buf[], u32 buflen);
 u32 b32hexe(u8 data[], u32 datalen, mu8 buf[], u32 buflen);
 u32 b64e(u8 data[], u32 datalen, mu8 buf[], u32 buflen);
+u32 b64se(u8 data[], u32 datalen, mu8 buf[], u32 buflen);
 u32 benc(
   u8  alph[],
   u32 alphlen,
@@ -64,6 +65,21 @@ u8 alph64[64] = {
   '4', '5', '6', '7', '8', '9', '+', '/',
 };
 
+u8 alph64safe[64] = {
+  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+  'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+  'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+  'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+  'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+  'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+  'w', 'x', 'y', 'z', '0', '1', '2', '3',
+  '4', '5', '6', '7', '8', '9', '-', '_',
+};
+
+u32 alphdlen   = 128;
+mu8 alphd[129] = {0};
+u8  alpherr    = 0xff;
+
 u32 benc(
   u8  alph[],
   u32 alphlen,
@@ -79,9 +95,9 @@ u32 benc(
   mu64 cur;
 
 /*
-       6 bits grouplen -> 3 common bytes
-       5 bits grouplen -> 5 common bytes
-       4 bits grouplen -> 1 common byte
+       6 bits grouplen -> 3 common bytes -> 4 curlen bytes
+       5 bits grouplen -> 5 common bytes -> 8 curlen bytes
+       4 bits grouplen -> 1 common byte  -> 2 curlen bytes
 */
   u32  common = grouplen / (!(grouplen % 2) + 1) / (!(grouplen % 4) + 1);
   u32  curlen = 8 * common / grouplen;
@@ -97,7 +113,7 @@ u32 benc(
     for (k = 0; k < common; k++)
       cur      = cur << 8 | data[j + k];
     for (k = 0; k < curlen; k++) {
-      offset   = (curlen - k - 1) * grouplen;
+      offset   = grouplen * (curlen - k - 1);
       index    = cur >> offset & mask;
       if (index >= alphlen)
         return 0;
@@ -142,4 +158,79 @@ u32 b32hexe(u8 data[], u32 datalen, mu8 buf[], u32 buflen) {
 
 u32 b64e(u8 data[], u32 datalen, mu8 buf[], u32 buflen) {
   return benc(alph64, 64, data, datalen, buf, buflen, 6);
+}
+
+u32 b64se(u8 data[], u32 datalen, mu8 buf[], u32 buflen) {
+  return benc(alph64safe, 64, data, datalen, buf, buflen, 6);
+}
+
+u32 bdec(
+  u8  alph[],
+  u32 alphlen,
+  u8  data[],
+  u32 datalen,
+  mu8 buf[],
+  u32 buflen,
+  u32 grouplen)
+{
+  mu32 j, k, m;
+  mu32 offset;
+  mu32 index;
+  mu32 len;
+  mu32 nopadlen;
+  mu64 cur;
+
+  u32  common = grouplen / (!(grouplen % 2) + 1) / (!(grouplen % 4) + 1);
+  u32  curlen = 8 * common / grouplen;
+  u8   mask   = 0xff >> (8 - grouplen);
+
+  if (datalen % curlen != 0)
+    return 0;
+
+  for (j = 0; j < datalen && data[datalen - 1 - j] == '='; j++);
+  if (grouplen == 4 && j != 0)
+    return 0;
+  if (j >= curlen)
+    return 0;
+
+  nopadlen = datalen - j;
+  len      = nopadlen / curlen * common + !!j * (curlen - j - 1) * grouplen / 8;
+
+  if (len > buflen)
+    return 0;
+
+  if (alphd[128] != alphlen) {
+    for (j = 0; j < alphdlen; j++)
+      alphd[j] = alpherr;
+    for (j = 0; j < alphlen; j++) {
+      index = alph[j];
+      if (index >= alphdlen)
+        return 0;
+      alphd[index] = (u8)j;
+    }
+    alphd[128] = alphlen;
+  }
+
+  m   = 0;
+  cur = 0;
+  for (j = 0; j + curlen <= nopadlen && m < len; j += curlen) {
+    for (k = 0; k < curlen; k++) {
+      index  = data[j + k];
+      if (index >= alphdlen)
+        return 0;
+      if (alphd[index] == alpherr)
+        return 0;
+      cur    = cur << grouplen | alphd[index];
+    }
+    for (k = 0; k < common; k++) {
+      offset   = 8 * (common - k - 1);
+      buf[m++] = cur >> offset;
+    }
+  }
+
+  return k;
+}
+
+u32 b16d(u8 data[], u32 datalen, mu8 buf[], u32 buflen) {
+  return bdec(alph16, 16, data, datalen, buf, buflen, 4);
 }
