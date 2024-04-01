@@ -97,11 +97,11 @@ int main(void) {
 
   puts("\nBASE32HEX");
   assert("", "", b32hexe("", 0, buf, BUFLEN));
-  assert("f", "CO======", b32hexe("f", 1, buf, BUFLEN));
-  assert("fo", "CPNG====", b32hexe("fo", 2, buf, BUFLEN));
-  assert("foo", "CPNMU===", b32hexe("foo", 3, buf, BUFLEN));
-  assert("foob", "CPNMUOG=", b32hexe("foob", 4, buf, BUFLEN));
-  assert("fooba", "CPNMUOJ1", b32hexe("fooba", 5, buf, BUFLEN));
+  assert("f",      "CO======",         b32hexe("f", 1, buf, BUFLEN));
+  assert("fo",     "CPNG====",         b32hexe("fo", 2, buf, BUFLEN));
+  assert("foo",    "CPNMU===",         b32hexe("foo", 3, buf, BUFLEN));
+  assert("foob",   "CPNMUOG=",         b32hexe("foob", 4, buf, BUFLEN));
+  assert("fooba",  "CPNMUOJ1",         b32hexe("fooba", 5, buf, BUFLEN));
   assert("foobar", "CPNMUOJ1E8======", b32hexe("foobar", 6, buf, BUFLEN));
   len      = b32hexe(stub, stublen, buf, BUFLEN);
   buf[len] = 0;
@@ -159,6 +159,23 @@ int main(void) {
     printf("  - fixt32.c: stub != buf\n");
   } else {
     printf("  + fixt32.c: stub == buf\n");
+  }
+
+  puts("\nDECODE BASE32HEX");
+  alphd[128] = 0;
+  test("f",      b32hexd("CO======",          8, buf, BUFLEN));
+  test("fo",     b32hexd("CPNG====",          8, buf, BUFLEN));
+  test("foo",    b32hexd("CPNMU===",          8, buf, BUFLEN));
+  test("foob",   b32hexd("CPNMUOG=",          8, buf, BUFLEN));
+  test("fooba",  b32hexd("CPNMUOJ1",          8, buf, BUFLEN));
+  test("foobar", b32hexd("CPNMUOJ1E8======", 16, buf, BUFLEN));
+  len      = b32hexd(fixt32hex, fixt32hexlen, buf, BUFLEN);
+  buf[len] = 0;
+  for (j = 0; j < len && j < stublen && stub[j] == buf[j]; j++);
+  if (j != len || stub[j-1] != buf[j-1]) {
+    printf("  - fixt32hex.c: stub != buf\n");
+  } else {
+    printf("  + fixt32hex.c: stub == buf\n");
   }
 
   puts("\nDECODE BASE64");

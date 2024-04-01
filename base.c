@@ -253,6 +253,11 @@ u32 b32d(u8 data[], u32 datalen, mu8 buf[], u32 buflen) {
   return bdec(alph32, 32, data, datalen, buf, buflen, 5);
 }
 
+u32 b32hexd(u8 data[], u32 datalen, mu8 buf[], u32 buflen) {
+  return bdec(alph32hex, 32, data, datalen, buf, buflen, 5);
+}
+
+
 u32 b64d(u8 data[], u32 datalen, mu8 buf[], u32 buflen) {
   return bdec(alph64, 64, data, datalen, buf, buflen, 6);
 }
