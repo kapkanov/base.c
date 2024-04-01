@@ -21,12 +21,29 @@ void asserttypes(void) {
   (void)sizeof(char[!!(8 - sizeof(i64)) * (-1)]);
 }
 
+enum ALPHTYPE {
+  ALPH16 = 1,
+  ALPH32,
+  ALPH32HEX,
+  ALPH64,
+  ALPH64SAFE
+};
+
 u32 b16e(u8 data[], u32 datalen, mu8 buf[], u32 buflen);
 u32 b32e(u8 data[], u32 datalen, mu8 buf[], u32 buflen);
 u32 b32hexe(u8 data[], u32 datalen, mu8 buf[], u32 buflen);
 u32 b64e(u8 data[], u32 datalen, mu8 buf[], u32 buflen);
 u32 b64se(u8 data[], u32 datalen, mu8 buf[], u32 buflen);
 u32 benc(
+  u8  alph[],
+  u32 alphlen,
+  u8  data[],
+  u32 datalen,
+  mu8 buf[],
+  u32 buflen,
+  u32 grouplen);
+u32 bdec(
+  const enum ALPHTYPE alpht,
   u8  alph[],
   u32 alphlen,
   u8  data[],
@@ -165,6 +182,7 @@ u32 b64se(u8 data[], u32 datalen, mu8 buf[], u32 buflen) {
 }
 
 u32 bdec(
+  const enum ALPHTYPE alpht,
   u8  alph[],
   u32 alphlen,
   u8  data[],
@@ -198,16 +216,16 @@ u32 bdec(
   if (len > buflen)
     return 0;
 
-  if (alphd[128] != alphlen) {
+  if (alphd[128] != alpht) {
     for (j = 0; j < alphdlen; j++)
-      alphd[j] = alpherr;
+      alphd[j]     = alpherr;
     for (j = 0; j < alphlen; j++) {
-      index = alph[j];
+      index        = alph[j];
       if (index >= alphdlen)
         return 0;
-      alphd[index] = (u8)j;
+      alphd[index] = j;
     }
-    alphd[128] = alphlen;
+    alphd[128] = alpht;
   }
 
   m   = 0;
@@ -246,18 +264,22 @@ u32 bdec(
 }
 
 u32 b16d(u8 data[], u32 datalen, mu8 buf[], u32 buflen) {
-  return bdec(alph16, 16, data, datalen, buf, buflen, 4);
+  return bdec(ALPH16, alph16, 16, data, datalen, buf, buflen, 4);
 }
 
 u32 b32d(u8 data[], u32 datalen, mu8 buf[], u32 buflen) {
-  return bdec(alph32, 32, data, datalen, buf, buflen, 5);
+  return bdec(ALPH32, alph32, 32, data, datalen, buf, buflen, 5);
 }
 
 u32 b32hexd(u8 data[], u32 datalen, mu8 buf[], u32 buflen) {
-  return bdec(alph32hex, 32, data, datalen, buf, buflen, 5);
+  return bdec(ALPH32HEX, alph32hex, 32, data, datalen, buf, buflen, 5);
 }
 
 
 u32 b64d(u8 data[], u32 datalen, mu8 buf[], u32 buflen) {
-  return bdec(alph64, 64, data, datalen, buf, buflen, 6);
+  return bdec(ALPH64, alph64, 64, data, datalen, buf, buflen, 6);
+}
+
+u32 b64sd(u8 data[], u32 datalen, mu8 buf[], u32 buflen) {
+  return bdec(ALPH64SAFE, alph64, 64, data, datalen, buf, buflen, 6);
 }

@@ -162,7 +162,6 @@ int main(void) {
   }
 
   puts("\nDECODE BASE32HEX");
-  alphd[128] = 0;
   test("f",      b32hexd("CO======",          8, buf, BUFLEN));
   test("fo",     b32hexd("CPNG====",          8, buf, BUFLEN));
   test("foo",    b32hexd("CPNMU===",          8, buf, BUFLEN));
