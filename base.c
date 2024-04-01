@@ -177,7 +177,7 @@ u32 bdec(
   mu32 offset;
   mu32 index;
   mu32 len;
-  mu32 nopadlen;
+  mu32 padlen;
   mu64 cur;
 
   u32  common = grouplen / (!(grouplen % 2) + 1) / (!(grouplen % 4) + 1);
@@ -187,14 +187,13 @@ u32 bdec(
   if (datalen % curlen != 0)
     return 0;
 
-  for (j = 0; j < datalen && data[datalen - 1 - j] == '='; j++);
-  if (grouplen == 4 && j != 0)
+  for (padlen = 0; padlen < datalen && data[datalen - 1 - padlen] == '='; padlen++);
+  if (grouplen == 4 && padlen != 0)
     return 0;
-  if (j >= curlen)
+  if (padlen >= curlen)
     return 0;
 
-  nopadlen = datalen - j;
-  len      = nopadlen / curlen * common + !!j * (curlen - j - 1) * grouplen / 8;
+  len      = (datalen - padlen) / curlen * common + !!padlen * (curlen - padlen) * grouplen / 8;
 
   if (len > buflen)
     return 0;
@@ -213,7 +212,7 @@ u32 bdec(
 
   m   = 0;
   cur = 0;
-  for (j = 0; j + curlen <= nopadlen && m < len; j += curlen) {
+  for (j = 0; j + curlen <= datalen - padlen && m < len; j += curlen) {
     for (k = 0; k < curlen; k++) {
       index  = data[j + k];
       if (index >= alphdlen)
@@ -228,9 +227,32 @@ u32 bdec(
     }
   }
 
-  return k;
+  if (j == datalen)
+    return (m == len) * m;
+
+  for (k = 0; k < curlen - 1 && j + k < datalen - padlen; k++) {
+    index  = data[j + k];
+    if (index >= alphdlen)
+      return 0;
+    cur    = cur << grouplen | alphd[index];
+  }
+
+  for (j = 0; j < grouplen * k / 8; j++) {
+    offset   = k * grouplen - 8 * (j + 1);
+    buf[m++] = cur >> offset;
+  }
+
+  return (m == len) * m;
 }
 
 u32 b16d(u8 data[], u32 datalen, mu8 buf[], u32 buflen) {
   return bdec(alph16, 16, data, datalen, buf, buflen, 4);
+}
+
+u32 b32d(u8 data[], u32 datalen, mu8 buf[], u32 buflen) {
+  return bdec(alph32, 32, data, datalen, buf, buflen, 5);
+}
+
+u32 b64d(u8 data[], u32 datalen, mu8 buf[], u32 buflen) {
+  return bdec(alph64, 64, data, datalen, buf, buflen, 6);
 }

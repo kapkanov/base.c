@@ -80,11 +80,11 @@ int main(void) {
 
   puts("\nBASE32");
   assert("", "", b32e("", 0, buf, BUFLEN));
-  assert("f", "MY======", b32e("f", 1, buf, BUFLEN));
-  assert("fo", "MZXQ====", b32e("fo", 2, buf, BUFLEN));
-  assert("foo", "MZXW6===", b32e("foo", 3, buf, BUFLEN));
-  assert("foob", "MZXW6YQ=", b32e("foob", 4, buf, BUFLEN));
-  assert("fooba", "MZXW6YTB", b32e("fooba", 5, buf, BUFLEN));
+  assert("f",      "MY======",         b32e("f", 1, buf, BUFLEN));
+  assert("fo",     "MZXQ====",         b32e("fo", 2, buf, BUFLEN));
+  assert("foo",    "MZXW6===",         b32e("foo", 3, buf, BUFLEN));
+  assert("foob",   "MZXW6YQ=",         b32e("foob", 4, buf, BUFLEN));
+  assert("fooba",  "MZXW6YTB",         b32e("fooba", 5, buf, BUFLEN));
   assert("foobar", "MZXW6YTBOI======", b32e("foobar", 6, buf, BUFLEN));
   len      = b32e(stub, stublen, buf, BUFLEN);
   buf[len] = 0;
@@ -114,11 +114,11 @@ int main(void) {
 
   puts("\nBASE64");
   assert("", "", b64e("", 0, buf, BUFLEN));
-  assert("f", "Zg==", b64e("f", 1, buf, BUFLEN));
-  assert("fo", "Zm8=", b64e("fo", 2, buf, BUFLEN));
-  assert("foo", "Zm9v", b64e("foo", 3, buf, BUFLEN));
-  assert("foob", "Zm9vYg==", b64e("foob", 4, buf, BUFLEN));
-  assert("fooba", "Zm9vYmE=", b64e("fooba", 5, buf, BUFLEN));
+  assert("f",      "Zg==",     b64e("f", 1, buf, BUFLEN));
+  assert("fo",     "Zm8=",     b64e("fo", 2, buf, BUFLEN));
+  assert("foo",    "Zm9v",     b64e("foo", 3, buf, BUFLEN));
+  assert("foob",   "Zm9vYg==", b64e("foob", 4, buf, BUFLEN));
+  assert("fooba",  "Zm9vYmE=", b64e("fooba", 5, buf, BUFLEN));
   assert("foobar", "Zm9vYmFy", b64e("foobar", 6, buf, BUFLEN));
   len      = b64e(stub, stublen, buf, BUFLEN);
   buf[len] = 0;
@@ -143,6 +143,38 @@ int main(void) {
     printf("  - fixt16.c: stub != buf\n");
   } else {
     printf("  + fixt16.c: stub == buf\n");
+  }
+
+  puts("\nDECODE BASE32");
+  test("f",      b32d("MY======",          8, buf, BUFLEN));
+  test("fo",     b32d("MZXQ====",          8, buf, BUFLEN));
+  test("foo",    b32d("MZXW6===",          8, buf, BUFLEN));
+  test("foob",   b32d("MZXW6YQ=",          8, buf, BUFLEN));
+  test("fooba",  b32d("MZXW6YTB",          8, buf, BUFLEN));
+  test("foobar", b32d("MZXW6YTBOI======", 16, buf, BUFLEN));
+  len      = b32d(fixt32, fixt32len, buf, BUFLEN);
+  buf[len] = 0;
+  for (j = 0; j < len && j < stublen && stub[j] == buf[j]; j++);
+  if (j != len || stub[j-1] != buf[j-1]) {
+    printf("  - fixt32.c: stub != buf\n");
+  } else {
+    printf("  + fixt32.c: stub == buf\n");
+  }
+
+  puts("\nDECODE BASE64");
+  test("f",      b64d("Zg==",     4, buf, BUFLEN));
+  test("fo",     b64d("Zm8=",     4, buf, BUFLEN));
+  test("foo",    b64d("Zm9v",     4, buf, BUFLEN));
+  test("foob",   b64d("Zm9vYg==", 8, buf, BUFLEN));
+  test("fooba",  b64d("Zm9vYmE=", 8, buf, BUFLEN));
+  test("foobar", b64d("Zm9vYmFy", 8, buf, BUFLEN));
+  len      = b64d(fixt64, fixt64len, buf, BUFLEN);
+  buf[len] = 0;
+  for (j = 0; j < len && j < stublen && stub[j] == buf[j]; j++);
+  if (j != len || stub[j-1] != buf[j-1]) {
+    printf("  - fixt64.c: stub != buf\n");
+  } else {
+    printf("  + fixt64.c: stub == buf\n");
   }
 
   return 0;
