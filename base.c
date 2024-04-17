@@ -109,6 +109,7 @@ u32 benc(
   mu32 j, k, m;
   mu32 offset;
   mu32 index;
+  /* TODO: convert to mu32 */
   mu64 cur;
 
 /*
@@ -196,6 +197,7 @@ u32 bdec(
   mu32 index;
   mu32 len;
   mu32 padlen;
+  /* TODO: convert to mu32 */
   mu64 cur;
 
   u32  common = grouplen / (!(grouplen % 2) + 1) / (!(grouplen % 4) + 1);
